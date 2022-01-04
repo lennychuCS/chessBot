@@ -1,9 +1,8 @@
 import numpy as np
 
-class board():
+class Board():
 
     def __init__(self, s_fen):
-        # TODO Add more of these if needed
         self.fen = s_fen
         self.boardArray = []
         self.fen_to_board(self.fen)
@@ -17,7 +16,7 @@ class board():
         new_board = np.empty(shape=(8,8), dtype=str)
         fen_full = f.split(" ")
         board_fen = fen_full[0].split("/")
-        print(board_fen)
+        #print(board_fen)
 
         board_index = 0
         charPointer = 0
@@ -25,13 +24,13 @@ class board():
             if board_index%8 == 0:
                 charPointer = 0
             char = board_fen[int(board_index/8)][charPointer]
-            print(new_board)
+            #print(new_board)
             if char.isdigit():
-                print(char)
+                #print(char)
                 charPointer += 1
                 board_index += int(char)
             else:
-                print(char)
+                #print(char)
                 new_board[int(board_index/8)][board_index%8]=char
                 charPointer += 1
                 board_index += 1
@@ -43,7 +42,17 @@ class board():
         self.fullMoveCount = fen_full[4]
 
     def printCurrentBoard(self):
-        print(self.boardLetterToSymbol(self.boardArray))
+        b = self.boardLetterToSymbol(self.boardArray)
+        spacer = "---+---+---+---+---+---+---+---"
+        index = (0,0)
+        for i in range (8):
+            line = ""
+            for j in range(8):
+                line += (" " + b[i,j] + " |")
+            print(line[:-1])
+            if i != 7:
+                print(spacer)
+
 
     def boardLetterToSymbol(self, b):
         # ♔♕♖♗♘♙
