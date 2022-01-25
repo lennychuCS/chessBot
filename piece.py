@@ -1,4 +1,6 @@
 import pygame
+import string
+import moveIndicator as mi
 
 # ♔♕♖♗♘♙
 # ♚♛♜♝♞♟
@@ -20,14 +22,18 @@ moves = {
     "♟":[0,0,1,1]
     }
 
+def numToFile(a):
+    foo = string.ascii_lowercase[:8]
+    return foo[a]
+
 def locToArray(x, y, size):
     col = int((x-size)/size)
-    row = int((y-size)/size)
+    row = 7-int((y-size)/size)
     return (row, col)
 
 def arrayToLoc(row, col, size):
     x = col*size+size
-    y = row*size+size
+    y = (7-row)*size+size
     return (x,y)
 
 class Piece(pygame.sprite.Sprite):
@@ -40,10 +46,11 @@ class Piece(pygame.sprite.Sprite):
         self.pos = pos
         self.size = size
         self.grid = locToArray(pos[0],pos[1],self.size[0])
+        self.truePos = [numToFile(self.grid[1]),abs(self.grid[0]+1)]
         self.rect = pygame.Rect(self.pos, self.size)
         self.moveType = moves[rankColor]
 
-    def showMoves(self, window, color, cb): #cb is current board
+    def showMoves(self, window, cb, moveIcons): #cb is current board
         #Show for Cardinal Moves
         for i in range(2):
             for j in range(2):
@@ -58,12 +65,12 @@ class Piece(pygame.sprite.Sprite):
                             gridY += j*2-1
                         continue
                     loc = arrayToLoc(gridX,gridY,self.size[0])
-                    center = (loc[0]+self.size[0]/2,loc[1]+self.size[1]/2)
+                    center = ((loc[0]+self.size[0]/2)-32,(loc[1]+self.size[1]/2)-32)
                     if cb[gridX,gridY] == " ":
-                        pygame.draw.circle(window, color, center, self.size[0]/3)
+                        moveIcons.add(mi.MoveIndicator(center,self.size[0],(gridX,gridY)))
                     else:
                         if moves[cb[gridX,gridY]][3]!=self.moveType[3]:
-                            pygame.draw.circle(window, (200,0,0), center, self.size[0]/4)
+                            moveIcons.add(mi.MoveIndicator(center,self.size[0],(gridX,gridY)))
                         break
 
                     if i%2 == 0:
@@ -85,12 +92,12 @@ class Piece(pygame.sprite.Sprite):
                         gridY += j*2-1
                         continue
                     loc = arrayToLoc(gridX,gridY,self.size[0])
-                    center = (loc[0]+self.size[0]/2,loc[1]+self.size[1]/2)
+                    center = ((loc[0]+self.size[0]/2)-32,(loc[1]+self.size[1]/2)-32)
                     if cb[gridX,gridY] == " ":
-                        pygame.draw.circle(window, color, center, self.size[0]/3)
+                        moveIcons.add(mi.MoveIndicator(center,self.size[0],(gridX,gridY)))
                     else:
                         if moves[cb[gridX,gridY]][3]!=self.moveType[3]:
-                            pygame.draw.circle(window, (200,0,0), center, self.size[0]/4)
+                            moveIcons.add(mi.MoveIndicator(center,self.size[0],(gridX,gridY)))
                         break
 
                     gridX += i*2-1
@@ -109,25 +116,56 @@ class Piece(pygame.sprite.Sprite):
                         gridY += L[1]*(j*2-1)
                         if gridX>=0 and gridX<8 and gridY>=0 and gridY<8:
                             loc = arrayToLoc(gridX,gridY,self.size[0])
-                            center = (loc[0]+self.size[0]/2,loc[1]+self.size[1]/2)
+                            center = ((loc[0]+self.size[0]/2)-32,(loc[1]+self.size[1]/2)-32)
                             if cb[gridX,gridY] == " ":
-                                pygame.draw.circle(window, color, center, self.size[0]/3)
+                                moveIcons.add(mi.MoveIndicator(center,self.size[0],(gridX,gridY)))
                             else:
                                 if moves[cb[gridX,gridY]][3]!=self.moveType[3]:
-                                    pygame.draw.circle(window, (200,0,0), center, self.size[0]/4)
+                                    moveIcons.add(mi.MoveIndicator(center,self.size[0],(gridX,gridY)))
 
         #pawn moves
-        if self.moveType[2] == 1:
+        if self.moveType[2] == 1: #White Pawns
+            gridX = self.grid[0]
+            gridY = self.grid[1]
+            p =1
             if self.moveType[3] == 0:
-                gridX = self.grid[0]
-                gridY = self.grid[1]
-                if gridY == 6:
-                    for i in range(2):
-                        loc = arrayToLoc(gridX,gridY-(i+1),self.size[0])
-                        center = (loc[0]+self.size[0]/2,loc[1]+self.size[1]/2)
-                        if cb[gridX,gridY] == " ":
-                            pygame.draw.circle(window, color, center, self.size[0]/3)
+                if gridX == 1:
+                    p = 2
+                for i in range(p):
+                    loc = arrayToLoc(gridX+(i+1),gridY,self.size[0])
+                    center = ((loc[0]+self.size[0]/2)-32,(loc[1]+self.size[1]/2)-32)
+                    if gridX+i+1 < 8 and cb[gridX+(i+1),gridY] == " ":
+                        moveIcons.add(mi.MoveIndicator(center,self.size[0],(gridX+(i+1),gridY)))
+                    else:
+                        break
 
+                for i in range(2): #Check for Captures
+                    loc = arrayToLoc(gridX+1,gridY-1+2*i,self.size[0])
+                    center = ((loc[0]+self.size[0]/2)-32,(loc[1]+self.size[1]/2)-32)
+                    if gridX+1 >= 0 and gridX+1 < 8 and gridY-1+2*i >= 0 and gridY-1+2*i < 8:
+                        capTarget = cb[gridX+1,gridY-1+(2*i)]
+                        if capTarget != " " and moves[capTarget][3]!=self.moveType[3]:
+                            moveIcons.add(mi.MoveIndicator(center,self.size[0],[gridX+1,gridY-1+(2*i)]))
 
+            else: #Black Pawns
+                if gridX == 6:
+                    p = 2
+                for i in range(p):
+                    loc = arrayToLoc(gridX-(i+1),gridY,self.size[0])
+                    center = ((loc[0]+self.size[0]/2)-32,(loc[1]+self.size[1]/2)-32)
+                    if cb[gridX-(i+1),gridY] == " ":
+                        moveIcons.add(mi.MoveIndicator(center,self.size[0],(gridX-(i+1),gridY)))
+                    else:
+                        break
+
+                for i in range(2): #Check for Captures
+                    loc = arrayToLoc(gridX-1,gridY-1+(2*i),self.size[0])
+                    center = ((loc[0]+self.size[0]/2)-32,(loc[1]+self.size[1]/2)-32)
+                    if gridX-1 >= 0 and gridX-1 < 8 and gridY-1+(2*i) >= 0 and gridY-1+(2*i) < 8:
+                        capTarget = cb[gridX-1,gridY-1+(2*i)]
+                        if capTarget != " " and moves[capTarget][3]!=self.moveType[3]:
+                            moveIcons.add(mi.MoveIndicator(center,self.size[0],[gridX-1,gridY-1+(2*i)]))
+
+        moveIcons.draw(window)
         pygame.display.update()
-
+        return moveIcons

@@ -24,7 +24,7 @@ class Board():
         while board_index < 64:
             if board_index%8 == 0:
                 charPointer = 0
-            char = board_fen[int(board_index/8)][charPointer]
+            char = board_fen[7-int(board_index/8)][charPointer]
             #print(new_board)
             if char.isdigit():
                 #print(char)
@@ -77,7 +77,14 @@ class Board():
         nBrd = b
         for i in range(8):
             for j in range(8):
-               nBrd[i,j] = pieceMap[nBrd[i,j]]
-
+                try:
+                    nBrd[i,j] = pieceMap[nBrd[i,j]]
+                except:
+                    a = None
         return nBrd
 
+    def giveLocValue(self, x, y):
+        return self.boardArray[x,y]
+
+    def setLocValue(self, x,y, newValue):
+        self.boardArray[x,y] = newValue

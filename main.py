@@ -1,29 +1,30 @@
 import numpy as np
 import pygame, sys
-import board
+import board as b
 from pygame.locals import *
 import piece as ps
 
 # ♔♕♖♗♘♙
 # ♚♛♜♝♞♟
 
-fen = "rnbqkbnr/pp2pppp/8/2p5/4P3/5N2/PPP2PPP/RNBQKB1R b KQkq - 1 2"
-testFen = "8/pp2pppp/8/4N3/8/PPP2PPP/8/8 b KQkq - 1 2"
+clock = pygame.time.Clock()
+fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
+testFen = "8/pp2pppp/P1P2PPP/4N3/8/8/8/8 b KQkq - 1 2"
 square_size = 60
 buffer = square = (square_size, square_size)
 
-board = board.Board(fen)
+curBoard = b.Board(fen)
 
-board.printCurrentBoard()
+curBoard.printCurrentBoard()
 
 def locToArray(x, y, size):
     col = int((x-size)/size)
-    row = int((y-size)/size)
+    row = 7-int((y-size)/size)
     return (row, col)
 
 def arrayToLoc(row, col, size):
     x = col*size+size
-    y = row*size+size
+    y = (7-row)*size+size
     return (x,y)
 
 
@@ -31,7 +32,7 @@ def arrayToLoc(row, col, size):
 pygame.init()
 
 #Set up the window
-windowSurface = pygame.display.set_mode((600, 600), 0 , 32)
+windowSurface = pygame.display.set_mode((1000, 600), 0 , 32)
 pygame.display.set_caption('Chess')
 
 #Set up the colors
@@ -50,23 +51,27 @@ basicFont = pygame.font.SysFont(None, 48)
 #Draw the white background onto the surface
 windowSurface.fill(GRAY)
 currentPieces = pygame.sprite.Group()
+moveIcons = pygame.sprite.Group()
+selectedPiece = None
 
 def drawBoard():
+
+    currentPieces.empty()
 
     col=0
     row=0
 
     while col < 8 and row < 8:
 
-        loc = tuple(map(sum, zip((col*square_size, row*square_size), buffer)))
+        loc = tuple(map(sum, zip((row*square_size, col*square_size), buffer)))
         if (col + row) % 2 == 0:
             pygame.draw.rect(windowSurface, WHITE, Rect(loc, square))
         else:
             pygame.draw.rect(windowSurface, SQRCOL, Rect(loc, square))
 
-        piece = board.boardArray[row,col]
+        piece = curBoard.boardArray[col, row]
         if piece != " ":
-            currentPieces.add(ps.Piece(arrayToLoc(row,col,square_size),square, piece))
+            currentPieces.add(ps.Piece(arrayToLoc(col,row,square_size),square, piece))
 
         row += 1
         if row > 7:
@@ -74,7 +79,6 @@ def drawBoard():
             col += 1
 
     currentPieces.draw(windowSurface)
-
     #Draw the window onto the screen
     pygame.display.update()
 
@@ -83,16 +87,30 @@ drawBoard()
 #Run the game loop
 while True:
 
+    clock.tick(120)
     for event in pygame.event.get():
         # handle MOUSEBUTTONUP
         if event.type == pygame.MOUSEBUTTONUP:
           drawBoard()
+
           pos = pygame.mouse.get_pos()
 
-          # get a list of all sprites that are under the mouse cursor
-          clicked_sprites = [s for s in currentPieces if s.rect.collidepoint(pos)]
-          for n in clicked_sprites:
-            n.showMoves(windowSurface, MOVESCOLOR, board.boardArray)
+          # get a list of all pieces that are under the mouse cursor
+          clicked_moves = None
+          clicked_moves = [s for s in moveIcons if s.rect.collidepoint(pos)]
+          for n in clicked_moves:
+            n.move(selectedPiece,curBoard)
+            selectedPiece = None
+            drawBoard()
+            pos = (-1,-1)
+
+          moveIcons.empty()
+
+          clicked_pieces = None
+          clicked_pieces = [s for s in currentPieces if s.rect.collidepoint(pos)]
+          for n in clicked_pieces:
+            n.showMoves(windowSurface, curBoard.boardArray, moveIcons)
+            selectedPiece = n
 
         if event.type == QUIT:
             pygame.quit()
