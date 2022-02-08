@@ -10,7 +10,7 @@ import piece as ps
 clock = pygame.time.Clock()
 fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0"
 testFen = "8/pp2pppp/P1P2PPP/4N3/8/8/8/8 b KQkq - 1 2"
-square_size = 60
+square_size = 64
 buffer = square = (square_size, square_size)
 
 curBoard = b.Board(fen)
@@ -103,13 +103,15 @@ while True:
             selectedPiece = None
             drawBoard()
             pos = (-1,-1)
+            curBoard.nextTurn()
+
 
           moveIcons.empty()
 
           clicked_pieces = None
           clicked_pieces = [s for s in currentPieces if s.rect.collidepoint(pos)]
           for n in clicked_pieces:
-            n.showMoves(windowSurface, curBoard.boardArray, moveIcons)
+            n.showMoves(windowSurface, curBoard.boardArray, moveIcons, curBoard.givePlayerTurn())
             selectedPiece = n
 
         if event.type == QUIT:

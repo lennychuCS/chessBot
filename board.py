@@ -88,3 +88,21 @@ class Board():
 
     def setLocValue(self, x,y, newValue):
         self.boardArray[x,y] = newValue
+
+    def nextTurn(self):
+        #TODO FIX FOR PAWN MOVES/CAPTURES HALFMOVE DOESNT WORK AS IT IS "SUPPOSED" TO
+        self.halfMoveClock = str(int(self.halfMoveClock) + 1)
+        if self.playerTurn == "w":
+            self.playerTurn = "b"
+            self.fullMoveCount = str(int(self.fullMoveCount) + 1)
+        else:
+            self.playerTurn = "w"
+
+    def giveHalfMove(self):
+        return self.halfMoveClock
+
+    def giveFullMove(self):
+        return self.fullMoveCount
+
+    def givePlayerTurn(self):
+        return self.playerTurn
